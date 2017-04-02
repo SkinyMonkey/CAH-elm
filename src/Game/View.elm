@@ -9,6 +9,7 @@ import App.State exposing (..)
 import App.Types exposing (..)
 
 import Game.State exposing (deck, playedCard)
+import Game.Types exposing (..)
 
 viewCard index styleToApply marginTop card event =
     div [ style (styleToApply index marginTop), onClick event ]

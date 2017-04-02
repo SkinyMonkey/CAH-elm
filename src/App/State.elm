@@ -1,8 +1,13 @@
 module App.State exposing (init, update)
 
+
 import App.Types exposing (..)
+import App.Subscriptions exposing (..)
 import Token.State exposing (generateToken)
-import Game.State exposing (updateGame, newGame)
+import Game.State exposing (update, newGame)
+
+import Decode.State exposing (update)
+import Encode.State exposing (..)
 
 -- import Token exposing (..)
 -- import Messages exposing (..)
@@ -10,7 +15,25 @@ import Game.State exposing (updateGame, newGame)
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    updateGame msg model
+    case msg of
+      NoOp -> ( model, Cmd.none )
+
+      GenerateToken token -> ( {model | localToken = token, gameToken = token}, Cmd.none)
+
+      Token tokenmsg -> Token.State.update tokenmsg model
+ 
+      -- Game gameMsg -> Game.State.update gameMsg model
+
+      NewMessage message -> Decode.State.update message model
+
+      Send toSend ->
+          let
+              message =
+                  Encode.State.encodeMessage toSend
+          in
+              ( model, App.Subscriptions.sendMessage message )
+
+      _ -> Game.State.update msg model
 
 init : ( Model, Cmd Msg )
 init =

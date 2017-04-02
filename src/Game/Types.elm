@@ -37,3 +37,6 @@ type alias Game =
     , playerPlayed : Bool
     , playerPoints : Int
     }
+
+type GameMsg = String
+    -- NewTurn Card

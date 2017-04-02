@@ -2,6 +2,7 @@ module App.Types exposing (..)
 
 import Game.Types exposing (..)
 import Token.Types exposing (..)
+import Decode.Types exposing (..)
 import Encode.Types exposing (..)
 
 import Cards.Types exposing (..)
@@ -16,10 +17,12 @@ type alias Model =
 
 type Msg
     = NoOp
-    | ClickHandWhiteCard Int Card
+    | NewMessage String
+    | Game GameMsg
+    | Send SendMsg
+    | Token TokenMsg
+    | GenerateToken String 
+    | ClickHandWhiteCard Int Card -- TODO : move
     | ClickJudgeWhiteCard Int Card
     | NewTurn Card
-    | NewMessage String
-    | Send SendMsg
-    | GenerateToken String -- TODO : TODO sub update
 --    | Card Cards.Types.CardsMsg
