@@ -17,7 +17,8 @@ type PlayerStatus
     = Judge
     | Player
 
--- TODO : replace by a dict
+-- TODO : replace by a dict?
+-- nop, would mean a maybe on each lookup, no way
 type alias Game =
     { whiteCards : Deck
     , blackCards : Deck
@@ -25,11 +26,15 @@ type alias Game =
     , selectedJudgeIndex : Int
     , selectedHandCard : Card
     , selectedJudgeCard : Card
-    , handCards : List Card
-    -- TODO List (Int, Card) -- (localToken, Card)
+    -- TODO List (String, Card) -- (localToken, Card)
+    -- , judgeCards : List (String, Card)
     , judgeCards : List Card
+    , handCards : List Card
     , blackCard : Card
-    -- TODO : move to another place
+
+    , tokenPair : (String, String)
+
+    -- TODO : move to another place?
     , gameStep : GameStep
     , playerIndex : Int
 --  , playersTokens : List String

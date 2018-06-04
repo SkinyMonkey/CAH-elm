@@ -50,9 +50,6 @@ viewBlackCard card =
 viewDeck =
     viewCard 0 blackCardStyle "20px" deck NoOp
 
-
-
-
 viewWaitCards model =
     let
         currentGame =
@@ -62,8 +59,6 @@ viewWaitCards model =
             currentGame.blackCard
     in
         ([ viewDeck ] ++ [ viewBlackCard blackCard ] ++ (List.indexedMap viewWaitWhiteCard [ playedCard ]))
-
-
 
 -- TODO : playedCard * playerNumber
 

@@ -3,7 +3,7 @@ module Game.State exposing (..)
 import Random.List exposing (shuffle)
 
 import App.Types exposing (..)
-import App.Subscriptions exposing (sendMessage)
+import App.Subscriptions exposing (sendGameMessage)
 
 import Encode.Types exposing (..)
 import Encode.State exposing (..)
@@ -27,13 +27,14 @@ judgeCards =
 newGame blackCard =
     { whiteCards = Cards.State.whiteCards
     , blackCards = Cards.State.blackCards
-    , selectedJudgeIndex = -1
     , selectedHandIndex = -1
-    , selectedJudgeCard = ""
+    , selectedJudgeIndex = -1
     , selectedHandCard = ""
+    , selectedJudgeCard = ""
     , judgeCards = judgeCards -- []
     , handCards = []
     , blackCard = blackCard
+    , tokenPair = ("", "") -- TODO : tokens
     , gameStep = Judgement -- Setup
     , playerIndex = 0
     , playerStatus = Judge
@@ -56,9 +57,9 @@ update msg model =
                     { currentGame | selectedHandIndex = index, selectedHandCard = card, playerPlayed = True }
 
                 message = 
-                    encodeMessage (SendWhiteHandCard card) -- TODO : Send tokens along
+                    encodeMessage (SendWhiteHandCard currentGame.tokenPair card) -- TODO : Send tokens along
             in
-                ( { model | currentGame = updatedGame }, sendMessage message )
+                ( { model | currentGame = updatedGame }, sendGameMessage currentGame.tokenPair message )
 
         ClickJudgeWhiteCard index card ->
             let
@@ -69,22 +70,24 @@ update msg model =
                     { currentGame | selectedJudgeIndex = index, selectedJudgeCard = card }
 
                 message = 
-                    encodeMessage (SendWhiteJudgeCard card) -- TODO : Send tokens along
+                    encodeMessage (SendWhiteJudgeCard currentGame.tokenPair card) -- TODO : Send tokens along
             in
-                ( { model | currentGame = updatedGame }, sendMessage message )
+                ( { model | currentGame = updatedGame }, sendGameMessage currentGame.tokenPair message )
 
         NewTurn blackCard ->
             let
                 game =
                     newGame blackCard
 
+                tokenPair = ("abc", "def")
+
                 message =
-                    encodeMessage (SendBlackCard blackCard)
+                    encodeMessage (SendBlackCard tokenPair blackCard) -- FIXME : tokenPair from game, not currentGame
             in
-                ( { model | currentGame = game }, sendMessage message )
+                ( { model | currentGame = game }, sendGameMessage tokenPair message )
 
         -- TODO : separate function, cleaner
         --        extract gameToken, don't act if gameToken different than current gametoken
+        --        -> actually no, the server should forward tokens to a room based on the gametoken
 
         _ -> (model, Cmd.none)
-       

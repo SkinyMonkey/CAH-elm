@@ -2,8 +2,8 @@ module Decode.State exposing (..)
 
 import Json.Decode exposing (int, string, float, nullable, Decoder, field)
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
-
 import Decode.Types exposing (..)
+
 
 headerDecoder : Decoder WSMessageHeader
 headerDecoder =
@@ -21,6 +21,7 @@ winnerIsDecoder : Decoder JudgeChoiceDecoder
 winnerIsDecoder =
     decode JudgeChoiceDecoder
         |> required "playerIndex" int
+
 
 tokensDecoder : Decoder TokensDecoder
 tokensDecoder =
@@ -42,7 +43,8 @@ decodeCard message =
                 "Error while decoding card"
 
 
-decodeJudgeChoice message = -- TODO : decode localToken instead
+decodeJudgeChoice message =
+    -- TODO : decode localToken instead
     let
         result =
             Json.Decode.decodeString winnerIsDecoder message
@@ -87,96 +89,114 @@ decodeMessage message =
             Err _ ->
                 WSReceiveError "Error while decoding json"
 
+
+
 -- TODO : move to Token.?
+
+
 decodeTokens message =
     let
         result =
             Json.Decode.decodeString tokensDecoder message
     in
         case result of
-            Ok { gameToken, localToken } -> gameToken ++ "," ++ localToken
+            Ok { gameToken, localToken } ->
+                gameToken ++ "," ++ localToken
 
             Err _ ->
                 "Error while decoding tokens"
 
+
 update msg model =
-  let
-      result =
-          decodeMessage msg
+    let
+        result =
+            decodeMessage msg
 
-      game =
-          model.currentGame
-  in
+        game =
+            model.currentGame
+    in
         case result of
-              ReceiveWhiteHandCard card ->
-                  let
-                      updatedHandCards =
-                          game.handCards ++ [ card ]
+            ReceiveWhiteHandCard card ->
+                let
+                    updatedHandCards =
+                        game.handCards ++ [ card ]
 
-                      updatedGame =
-                          { game | handCards = updatedHandCards }
-                  in
-                      ( { model | currentGame = updatedGame }, Cmd.none )
-
-              ReceiveWhiteJudgeCard card ->
-                  let
-                      updatedJudgeCards =
-                          game.judgeCards ++ [ card ]
-
-                      updatedGame =
-                          { game | judgeCards = updatedJudgeCards }
-                  in
-                   -- TODO : if game.handCards.length == playersTokens.length, gameStep = Judgement
-                      ( { model | currentGame = updatedGame }, Cmd.none )
-
-              ReceiveBlackCard card ->
-                  let
-                      updatedGame =
-                          { game | blackCard = card }
-                  in
-                      ( { model | currentGame = updatedGame }, Cmd.none )
-
-              ReceiveJudgeChoiceCard winner ->
-                  -- TODO
-                  ( model, Cmd.none )
-
-              ReceiveJudgeChoice winner -> -- TODO : decide based on localToken instead?
-                  let
-                      maybeWinnerIndex =
-                          String.toInt winner
-                  in
-                      case maybeWinnerIndex of
-                          Ok winnerIndex ->
-                              let
-                                  updatedPlayerPoints =
-                                      if winnerIndex == game.playerIndex then
-                                          game.playerPoints + 1
-                                      else
-                                          game.playerPoints
-
-                                  -- selectedJudgeCard
-                                  updatedGame =
-                                      { game | playerPoints = updatedPlayerPoints }
-                              in
-                                  ( { model | currentGame = updatedGame }, Cmd.none )
-
-                          Err error ->
-                              ( { model | error = error }, Cmd.none )
-
-              ReceiveTokens tokens -> -- TODO : redo after receiving localToken too
-                let tokenList = String.split "," tokens
-                    maybeGameToken = List.head tokenList
-                    maybeLocalToken = List.tail tokenList
+                    updatedGame =
+                        { game | handCards = updatedHandCards }
                 in
-                   case maybeGameToken of
-                     Just gameToken ->
-                   -- TODO if not in playersTokens, players whatever
-                   --      add it
-                          case maybeLocalToken of
-                            Just localToken -> (model, Cmd.none)
-                            Nothing -> (model, Cmd.none)
+                    ( { model | currentGame = updatedGame }, Cmd.none )
 
-                     Nothing -> ( model, Cmd.none)
+            ReceiveWhiteJudgeCard card ->
+                let
+                    updatedJudgeCards =
+                        game.judgeCards ++ [ card ]
 
-              WSReceiveError error ->
-                  ( { model | error = error }, Cmd.none )
+                    updatedGame =
+                        { game | judgeCards = updatedJudgeCards }
+                in
+                    -- TODO : if game.handCards.length == playersTokens.length, gameStep = Judgement
+                    ( { model | currentGame = updatedGame }, Cmd.none )
+
+            ReceiveBlackCard card ->
+                let
+                    updatedGame =
+                        { game | blackCard = card }
+                in
+                    ( { model | currentGame = updatedGame }, Cmd.none )
+
+            ReceiveJudgeChoiceCard winner ->
+                -- TODO
+                ( model, Cmd.none )
+
+            ReceiveJudgeChoice winner ->
+                -- TODO : decide based on localToken instead?
+                let
+                    maybeWinnerIndex =
+                        String.toInt winner
+                in
+                    case maybeWinnerIndex of
+                        Ok winnerIndex ->
+                            let
+                                updatedPlayerPoints =
+                                    if winnerIndex == game.playerIndex then
+                                        game.playerPoints + 1
+                                    else
+                                        game.playerPoints
+
+                                -- selectedJudgeCard
+                                updatedGame =
+                                    { game | playerPoints = updatedPlayerPoints }
+                            in
+                                ( { model | currentGame = updatedGame }, Cmd.none )
+
+                        Err error ->
+                            ( { model | error = error }, Cmd.none )
+
+            ReceiveTokens tokens ->
+                -- TODO : redo after receiving localToken too
+                let
+                    tokenList =
+                        String.split "," tokens
+
+                    maybeGameToken =
+                        List.head tokenList
+
+                    maybeLocalToken =
+                        List.tail tokenList
+                in
+                    case maybeGameToken of
+                        Just gameToken ->
+                            -- TODO if not in playersTokens, players whatever
+                            --      add it
+                            case maybeLocalToken of
+                                Just localToken ->
+                                    ( model, Cmd.none )
+
+                                Nothing ->
+                                    ( model, Cmd.none )
+
+                        Nothing ->
+                            ( model, Cmd.none )
+
+            WSReceiveError error ->
+                ( { model | error = error }, Cmd.none )

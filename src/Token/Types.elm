@@ -1,9 +1,11 @@
 module Token.Types exposing (..)
 
-type Token = String
+-- FIXME : why cant i use this?
+--type Token = String
+--type alias TokenPair = (Token, Token)
 
 type TokenMsg =
 --      GenerateToken String
-      GameToken String
-    | LocalToken String
+      GameToken String -- current game host token
+    | LocalToken String -- local host token
     | SubmitTokens (String, String)
