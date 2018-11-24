@@ -1,42 +1,48 @@
 const express = require('express');
 const app = express();
-const expressWS = require('express-ws')(app);
+const expressWs = require('express-ws')(app);
 
 const portNumber = 3000;
 
-app.listen(portNumber, () => {
+app.listen(portNumber, function() {
     console.log(`Listening on port ${portNumber}`);
 });
 
-app.ws('/', (websocket, req) => {
-  console.log('A client connected to /!')
-  // FIXME : get all the tokens
-})
+app.ws('/', function(websocket, request) {
+  console.log('A client connected!');
 
-// FIXME : debug, remove
-// websocket.send(JSON.stringify({action: "whiteJudgeCard", card: "Stupid Cunt."}));
-app.ws('/:gameToken', (websocket, req) => {
-  console.log('A client connected!')
+  const room = expressWs.getWss('/');
 
-  console.log(req.params);
+  websocket.broadcast = (message) => {
+    console.log('broadcasting: ', message);
+    room.clients.forEach((client) => {
+//      if (client != websocket) {
+        client.send(message);
+//      }
+    });
+  };
 
-  const gameToken = req.params['game_token'];
+  websocket.sendMessage = (message) => {
+    websocket.send(JSON.stringify(message));
+  }
 
-  websocket.on('message', (message) => {
-    switch (message.action) {
-      case "connect":
-       break;
+  room.clients.forEach((client, index) => {
+    if (index == 0) return;
 
-      // Forwards the message to everyone else
-      default:
-        const room = expressWs.getWss(gameToken)
-
-        room.clients.forEach((client) => {
-          if (client != websocket) {
-            client.send(message);
-          }
-        });
-        break;
-    }
+    websocket.sendMessage({
+      action : 'newPlayer',
+      name : `Player ${index}`
+    });
   });
+
+  if (room.clients.size == 1) {
+    console.log('Is a judge');
+    websocket.sendMessage({ action : 'setup', role : 'judge' });
+  }
+  else {
+    console.log('Is a player');
+    websocket.sendMessage({ action : 'setup', role : 'player' });
+  }
+
+  websocket.on('message', (message) => websocket.broadcast(message));
 });

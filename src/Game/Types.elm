@@ -26,21 +26,18 @@ type alias Game =
     , selectedJudgeIndex : Int
     , selectedHandCard : Card
     , selectedJudgeCard : Card
-    -- TODO List (String, Card) -- (localToken, Card)
-    -- , judgeCards : List (String, Card)
-    , judgeCards : List Card
-    , handCards : List Card
+    , judgeCards : List Card -- cards sent to the judge
+    , handCards : List Card -- cards in the player hand
     , blackCard : Card
-
-    , tokenPair : (String, String)
 
     -- TODO : move to another place?
     , gameStep : GameStep
     , playerIndex : Int
---  , playersTokens : List String
     , playerStatus : PlayerStatus
     , playerPlayed : Bool
     , playerPoints : Int
+
+    , players : List String
     }
 
 type GameMsg = String

@@ -45,6 +45,8 @@ pointsStyle =
         [ ( "padding-left", "520px" )
         , ( "padding-top", "20px" )
         , ( "font-size", "20px" )
+        , ( "font-weight", "bold" )
+        , ( "font-family", "Helvetica , Times, serif" )
         ]
 
 

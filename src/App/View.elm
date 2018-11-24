@@ -36,15 +36,21 @@ viewTurn turnNumber =
     div [ pointsStyle ]
         [ text "Turn number: ", text (toString turnNumber) ]
 
+viewRole model =
+    let 
+      role = case model.currentGame.playerStatus of
+        Judge -> "judging"
+        Player -> "playing"
+    in
+        div [ pointsStyle ]
+            [ text ("You're " ++ role) ]
+
 viewStep model =
     let
         game =
             model.currentGame
     in
         case game.gameStep of
-          -- TODO : add Setup?
---            Setup -> viewTokenSetup model
-
             Judgement ->
                 case game.playerStatus of
                     Judge ->
@@ -68,7 +74,7 @@ viewStep model =
 
 view : Model -> Html Msg
 view model =
-    body [ pageStyle ] ([ div [] ((viewStep model) ++ (viewError model)) ])
+    body [ pageStyle ] ([(viewRole model),  div [] ((viewStep model) ++ (viewError model)) ])
 
 
 

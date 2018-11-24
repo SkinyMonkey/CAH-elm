@@ -57,11 +57,11 @@ viewWaitCards model =
 
         blackCard =
             currentGame.blackCard
+
+        playerNumber =
+            List.length currentGame.judgeCards
     in
-        ([ viewDeck ] ++ [ viewBlackCard blackCard ] ++ (List.indexedMap viewWaitWhiteCard [ playedCard ]))
-
--- TODO : playedCard * playerNumber
-
+        ([ viewDeck ] ++ [ viewBlackCard blackCard ] ++ (List.indexedMap viewWaitWhiteCard (List.repeat playerNumber playedCard) ))
 
 viewHandCards model =
     let
@@ -74,10 +74,13 @@ viewHandCards model =
         selectedHandIndex =
             currentGame.selectedHandIndex
 
-        judgeCards =
-            currentGame.judgeCards
+        handCards =
+            currentGame.handCards
     in
-        ([ viewDeck ] ++ [ viewBlackCard blackCard ] ++ (List.indexedMap (viewHandWhiteCard selectedHandIndex) judgeCards))
+       -- FIXME : if played : judgeCards
+       --         else handCards
+--        ([ viewDeck ] ++ [ viewBlackCard blackCard ] ++ (List.indexedMap (viewHandWhiteCard selectedHandIndex) judgeCards))
+        ([ viewDeck ] ++ [ viewBlackCard blackCard ] ++ (List.indexedMap (viewHandWhiteCard selectedHandIndex) handCards))
 
 
 viewJudgeCards model =

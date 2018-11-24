@@ -2,40 +2,41 @@ module Encode.State exposing (..)
 
 import Json.Encode exposing (encode)
 
+import Game.Types exposing (..)
 import Encode.Types exposing (..)
 
--- TODO : move to Token.Encode module?
-encodeTokens (gameToken, localToken) = 
-    encode 0 (Json.Encode.object [ ( "action", Json.Encode.string "tokens" )
-                                 , ( "game_token", Json.Encode.string gameToken )
-                                 , ( "local_token", Json.Encode.string localToken) ])
+encodeStep step =
+  let
+      nextStep = case step of
+        Judgement -> "judgement"
+        PlayTime -> "playtime" 
+  in
+    encode 0 (Json.Encode.object [ ( "action", Json.Encode.string "changeStep" )
+                                 , ( "step", Json.Encode.string nextStep ) ])
 
-encodeCard action (gameToken, localToken) card =
+encodeCard action card =
     encode 0 (Json.Encode.object [ ( "action", Json.Encode.string action )
-                                 , ( "card", Json.Encode.string card )
-                                 , ( "game_token", Json.Encode.string gameToken )
-                                 , ( "local_token", Json.Encode.string localToken ) ])
+                                 , ( "card", Json.Encode.string card ) ])
 
--- TODO : add gameToken and localToken to each message
 encodeMessage message =
     case message of
-        SendWhiteHandCard tokens card ->
-            encodeCard "whiteHandCard" tokens card
+        SendChangeStep step ->
+            encodeStep step
 
-        SendWhiteJudgeCard tokens card ->
-            encodeCard "whiteJudgeCard" tokens card
+        SendWhiteHandCard card ->
+            encodeCard "whiteHandCard" card
 
-        SendBlackCard tokens card ->
-            encodeCard "blackCard" tokens card
+        SendWhiteJudgeCard card ->
+            encodeCard "whiteJudgeCard" card
 
-        SendJudgeChoice tokens card ->
-            encodeCard "judgeChoice" tokens card
+        SendBlackCard card ->
+            encodeCard "blackCard" card
 
-        SendJudgeChoiceCard tokens card ->
-            encodeCard "judgeChoiceCard" tokens card
+        SendJudgeChoice card ->
+            encodeCard "judgeChoice" card
 
-        SendTokenPairs tokens ->
-            encodeTokens tokens
+        SendJudgeChoiceCard card ->
+            encodeCard "judgeChoiceCard" card
 
         WSSendError error ->
             error

@@ -3,7 +3,7 @@ module Game.State exposing (..)
 import Random.List exposing (shuffle)
 
 import App.Types exposing (..)
-import App.Subscriptions exposing (sendGameMessage)
+import App.Subscriptions exposing (sendMessage)
 
 import Encode.Types exposing (..)
 import Encode.State exposing (..)
@@ -13,7 +13,6 @@ import Decode.State exposing (..)
 
 import Game.Types exposing (..)
 import Cards.State exposing (..)
-import Token.State exposing (..)
 
 deck =
     "Cards against humanity"
@@ -21,7 +20,8 @@ deck =
 playedCard =
     deck
 
-judgeCards =
+-- FIXME : debug, remove
+handCards = 
     [ "Bullshit.", "Yeah", "Copain", "Test" ]
 
 newGame blackCard =
@@ -31,15 +31,15 @@ newGame blackCard =
     , selectedJudgeIndex = -1
     , selectedHandCard = ""
     , selectedJudgeCard = ""
-    , judgeCards = judgeCards -- []
-    , handCards = []
+    , judgeCards = [] -- []
+    , handCards = handCards -- []
     , blackCard = blackCard
-    , tokenPair = ("", "") -- TODO : tokens
-    , gameStep = Judgement -- Setup
+    , gameStep = PlayTime -- Setup
     , playerIndex = 0
-    , playerStatus = Judge
+    , playerStatus = Player
     , playerPlayed = False
     , playerPoints = 0
+    , players = []
     }
 
 update msg model =
@@ -48,6 +48,7 @@ update msg model =
 --        BlackCardsShuffled blackCards -> ( { model | blackCard = blackCards }, Cmd.none )
  -- Random.generate WhiteCardsShuffled shuffle model.whiteCards)
 
+        -- as a player i click on a card in my hand
         ClickHandWhiteCard index card ->
             let
                 currentGame =
@@ -57,10 +58,11 @@ update msg model =
                     { currentGame | selectedHandIndex = index, selectedHandCard = card, playerPlayed = True }
 
                 message = 
-                    encodeMessage (SendWhiteHandCard currentGame.tokenPair card) -- TODO : Send tokens along
+                    encodeMessage (SendWhiteHandCard card)
             in
-                ( { model | currentGame = updatedGame }, sendGameMessage currentGame.tokenPair message )
+                ( { model | currentGame = updatedGame }, sendMessage message )
 
+        -- as a judge i select one of the white cards
         ClickJudgeWhiteCard index card ->
             let
                 currentGame =
@@ -70,24 +72,18 @@ update msg model =
                     { currentGame | selectedJudgeIndex = index, selectedJudgeCard = card }
 
                 message = 
-                    encodeMessage (SendWhiteJudgeCard currentGame.tokenPair card) -- TODO : Send tokens along
+                    encodeMessage (SendWhiteJudgeCard card)
             in
-                ( { model | currentGame = updatedGame }, sendGameMessage currentGame.tokenPair message )
+                ( { model | currentGame = updatedGame }, sendMessage message )
 
         NewTurn blackCard ->
             let
                 game =
                     newGame blackCard
 
-                tokenPair = ("abc", "def")
-
                 message =
-                    encodeMessage (SendBlackCard tokenPair blackCard) -- FIXME : tokenPair from game, not currentGame
+                    encodeMessage (SendBlackCard blackCard)
             in
-                ( { model | currentGame = game }, sendGameMessage tokenPair message )
-
-        -- TODO : separate function, cleaner
-        --        extract gameToken, don't act if gameToken different than current gametoken
-        --        -> actually no, the server should forward tokens to a room based on the gametoken
+                ( { model | currentGame = game }, sendMessage message )
 
         _ -> (model, Cmd.none)
